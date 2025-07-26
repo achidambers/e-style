@@ -1,8 +1,29 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Search, User, Menu } from "lucide-react";
+import { Heart, Search, User, Menu, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -42,13 +63,46 @@ export const Header = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="hidden sm:flex">
-            <User className="h-4 w-4 mr-2" />
-            Sign In
-          </Button>
-          <Button variant="hero" className="hidden sm:flex">
-            Start Fundraiser
-          </Button>
+          {user ? (
+            <>
+              <Button variant="hero" className="hidden sm:flex">
+                Start Fundraiser
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" className="hidden sm:flex" asChild>
+                <Link to="/auth">
+                  <User className="h-4 w-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
+              <Button variant="hero" className="hidden sm:flex" asChild>
+                <Link to="/auth">Start Fundraiser</Link>
+              </Button>
+            </>
+          )}
           
           {/* Mobile menu button */}
           <Button variant="ghost" size="icon" className="lg:hidden">
